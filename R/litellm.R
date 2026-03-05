@@ -96,8 +96,13 @@ litellm_setup <- function(api_key, base_url) {
 #'
 #'   `"You are a statistics teacher who explains concepts clearly."`
 #'
-#' @return
-#' A character string containing the model's response.
+#' @param new_context Logical. If TRUE, starts a new conversation by
+#'   clearing all previous messages and the stored system prompt. The new
+#'   conversation will only include the current prompt and, if provided, a
+#'   new system prompt. If FALSE (default), the previous conversation context
+#'   is preserved.
+#'
+#' @return Character string containing the model's response.
 #'
 #' @seealso litellm_setup(), litellm_models()
 #'
@@ -132,8 +137,10 @@ litellm_chat <- function(prompt,
                          model = "gpt-4o-mini",
                          temperature = 0.7,
                          max_tokens = 500,
-                         system_prompt = NULL) {
+                         system_prompt = NULL,
+                         new_context = FALSE) {
 
+  # Ensure setup
   api_key <- getOption("litellm_api_key")
   base_url <- getOption("litellm_base_url")
 
@@ -141,17 +148,32 @@ litellm_chat <- function(prompt,
     stop("Run litellm_setup() first.")
   }
 
-  messages <- list()
+  # Ensure environment exists
+  if (!exists(".litellm_env", envir = .GlobalEnv)) {
+    assign(".litellm_env", new.env(), envir = .GlobalEnv)
+  }
+  env <- get(".litellm_env", envir = .GlobalEnv)
 
-  if (!is.null(system_prompt)) {
-    messages <- append(messages, list(
-      list(role = "system", content = system_prompt)
-    ))
+  # Initialize storage if needed
+  if (!exists("messages", envir = env)) env$messages <- list()
+  if (!exists("system_prompt", envir = env)) env$system_prompt <- NULL
+
+  # Handle new context
+  if (new_context) {
+    env$messages <- list()
+    env$system_prompt <- NULL
   }
 
-  messages <- append(messages, list(
-    list(role = "user", content = prompt)
-  ))
+  # Update system prompt if provided
+  if (!is.null(system_prompt)) {
+    env$system_prompt <- list(role = "system", content = system_prompt)
+  }
+
+  # Build message list
+  messages <- list()
+  if (!is.null(env$system_prompt)) messages <- list(env$system_prompt)
+  if (length(env$messages) > 0) messages <- append(messages, env$messages)
+  messages <- append(messages, list(list(role = "user", content = prompt)))
 
   req <- request(paste0(base_url, "/chat/completions")) |>
     req_headers(
@@ -166,10 +188,15 @@ litellm_chat <- function(prompt,
     ))
 
   resp <- req_perform(req)
-
   json <- resp_body_json(resp)
 
-  json$choices[[1]]$message$content
+  answer <- json$choices[[1]]$message$content
+
+  # Append assistant response to stored context
+  env$messages <- append(env$messages, list(list(role = "user", content = prompt),
+                                            list(role = "assistant", content = answer)))
+
+  return(answer)
 }
 
 #' Retrieve available models from the LiteLLM server
@@ -217,3 +244,4 @@ litellm_models <- function() {
 
   resp_body_json(resp)
 }
+

@@ -9,7 +9,8 @@ litellm_chat(
   model = "gpt-4o-mini",
   temperature = 0.7,
   max_tokens = 500,
-  system_prompt = NULL
+  system_prompt = NULL,
+  new_context = FALSE
 )
 }
 \arguments{
@@ -38,9 +39,15 @@ that defines the role or behavior of the model before the user
 prompt is processed. For example:
 
 \code{"You are a statistics teacher who explains concepts clearly."}}
+
+\item{new_context}{Logical. If TRUE, starts a new conversation by
+clearing all previous messages and the stored system prompt. The new
+conversation will only include the current prompt and, if provided, a
+new system prompt. If FALSE (default), the previous conversation context
+is preserved.}
 }
 \value{
-A character string containing the model's response.
+Character string containing the model's response.
 }
 \description{
 This function sends a prompt to a language model via a LiteLLM server

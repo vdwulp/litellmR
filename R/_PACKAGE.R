@@ -12,7 +12,7 @@
 #'   \item{\code{\link{litellm_models}}}{List the models available on the LiteLLM server.}
 #' }
 #'
-#' @section Example workflow:
+#' @examples
 #' \dontrun{
 #' library(litellmR)
 #'

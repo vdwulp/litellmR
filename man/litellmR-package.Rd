@@ -20,8 +20,7 @@ LiteLLM server using an OpenAI-compatible API.
 }
 }
 
-\section{Example workflow}{
-
+\examples{
 \dontrun{
 library(litellmR)
 
@@ -37,8 +36,16 @@ litellm_models()
 # 3. Send a prompt
 litellm_chat("Explain regression analysis in simple terms.")
 }
+
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/vdwulp/litellmR}
+  \item Report bugs at \url{https://github.com/vdwulp/litellmR/issues}
 }
 
+}
 \author{
 \strong{Maintainer}: First Last \email{first.last@example.com}
 
