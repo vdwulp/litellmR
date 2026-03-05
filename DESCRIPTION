@@ -12,3 +12,5 @@ RoxygenNote: 7.3.3
 Imports: 
     httr,
     jsonlite
+URL: https://github.com/vdwulp/litellmR
+BugReports: https://github.com/vdwulp/litellmR/issues
