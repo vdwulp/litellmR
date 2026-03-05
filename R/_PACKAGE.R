@@ -8,9 +8,13 @@
 #' @section Main functions:
 #' \describe{
 #'   \item{\code{\link{litellm_setup}}}{Configure the API key and server URL. Must be run before other functions.}
-#'   \item{\code{\link{litellm_chat}}}{Send a user prompt to a LiteLLM model and receive a response.}
+#'   \item{\code{\link{litellm_prompt}}}{Send a single prompt to a LiteLLM model  and receive a response (without chat context).}
+#'   \item{\code{\link{litellm_chat}}}{Send a chat message to a LiteLLM model and receive a response (multi-turn chat).}
 #'   \item{\code{\link{litellm_models}}}{List the models available on the LiteLLM server.}
 #' }
+#'
+#' @name litellmR
+#' @author SA van der Wulp
 #'
 #' @examples
 #' \dontrun{
@@ -25,8 +29,12 @@
 #' # 2. Check available models
 #' litellm_models()
 #'
-#' # 3. Send a prompt
+#' # 3. Send a single prompt (without chat context)
+#' litellm_prompt("Explain regression analysis in simple terms.")
+#'
+#' # 4. Multi-turn chat (context preserved)
 #' litellm_chat("Explain regression analysis in simple terms.")
+#' litellm_chat("That is way too complex for me.")
 #' }
 #'
 #' @keywords internal

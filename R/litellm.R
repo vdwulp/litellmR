@@ -59,10 +59,88 @@ litellm_setup <- function(api_key, base_url) {
   )
 }
 
-#' Send a prompt to a LiteLLM chat model
+#' Send a single prompt to a LiteLLM model (without chat context)
 #'
-#' This function sends a prompt to a language model via a LiteLLM server
-#' and returns the generated response as text.
+#' Sends a **stateless** prompt to a LiteLLM model and returns the response.
+#' No conversation context is preserved; each call is independent.
+#'
+#' LiteLLM provides an OpenAI-compatible API that allows different
+#' language models to be accessed through a single interface.
+#'
+#' Before using this function, a connection must be configured with
+#' `litellm_setup()`.
+#'
+#' @param prompt Character string. The question or instruction to send
+#'   to the language model. For example:
+#'   `"Explain what regression analysis is."`
+#'
+#' @param model Character string. The name of the model to use.
+#'   The available models depend on the LiteLLM server configuration.
+#'   Examples include `"gpt-4o-mini"` or `"gpt-4o"`.
+#'
+#' @param temperature Numeric value controlling the randomness of the
+#'   generated output.
+#'   \itemize{
+#'   \item Low values (e.g., 0.1–0.3) produce more deterministic answers
+#'   \item Medium values (~0.5–0.7) provide balanced responses
+#'   \item Higher values (~0.8–1) produce more creative outputs
+#'   }
+#'
+#' @param max_tokens Integer. The maximum number of tokens the model
+#'   is allowed to generate in its response. Larger values allow longer
+#'   answers but may increase processing time or API usage.
+#'
+#' @return Character string containing the model's response.
+#'
+#' @seealso litellm_setup(), litellm_models(), litellm_chat()
+#'
+#' @examples
+#' \dontrun{
+#'
+#' # Configure connection
+#' litellm_setup(
+#'   api_key = "MY_API_KEY",
+#'   base_url = "https://my-server/v1"
+#' )
+#'
+#' # Single prompt
+#' litellm_prompt("Explain regression analysis in simple terms.")
+#' }
+#'
+#' @export
+litellm_prompt <- function(prompt, model="gpt-4o-mini",
+                           temperature=0.7,
+                           max_tokens=500) {
+
+  # Ensure setup
+  api_key <- getOption("litellm_api_key")
+  base_url <- getOption("litellm_base_url")
+  if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
+
+  # Send to LiteLLM /completions
+  req <- request(paste0(base_url, "/completions")) |>
+    req_headers(
+      "x-litellm-api-key" = api_key,
+      "Content-Type" = "application/json"
+    ) |>
+    req_body_json(list(
+      model = model,
+      prompt = prompt,
+      temperature = temperature,
+      max_tokens = max_tokens
+    ))
+
+  resp <- req_perform(req)
+  json <- resp_body_json(resp)
+
+  json$choices[[1]]$text
+}
+
+#' Send a chat message to a LiteLLM model (multi-turn)
+#'
+#' Sends a chat message to a LiteLLM model and returns the response. This
+#' function **maintains conversation context** by default, allowing follow-up
+#' prompts to be aware of previous messages and a system role instruction.
 #'
 #' LiteLLM provides an OpenAI-compatible API that allows different
 #' language models to be accessed through a single interface.
@@ -104,7 +182,7 @@ litellm_setup <- function(api_key, base_url) {
 #'
 #' @return Character string containing the model's response.
 #'
-#' @seealso litellm_setup(), litellm_models()
+#' @seealso litellm_setup(), litellm_models(), litellm_prompt()
 #'
 #' @examples
 #' \dontrun{
@@ -115,21 +193,20 @@ litellm_setup <- function(api_key, base_url) {
 #'   base_url = "https://my-server/v1"
 #' )
 #'
-#' # Simple prompt
+#' # Simple multi-turn chat (context preserved)
 #' litellm_chat("What is machine learning?")
 #'
-#' # Prompt with a system role
+#' # With system role
 #' litellm_chat(
 #'   "Explain regression analysis.",
 #'   system_prompt = "You are a statistics teacher."
 #' )
 #'
-#' # More creative output
+#' # Start a new conversation
 #' litellm_chat(
-#'   "Write a short haiku about data science",
-#'   temperature = 0.9
+#'   "Summarize linear regression in 3 sentences.",
+#'   new_context = TRUE
 #' )
-#'
 #' }
 #'
 #' @export
@@ -143,10 +220,7 @@ litellm_chat <- function(prompt,
   # Ensure setup
   api_key <- getOption("litellm_api_key")
   base_url <- getOption("litellm_base_url")
-
-  if (is.null(api_key) || is.null(base_url)) {
-    stop("Run litellm_setup() first.")
-  }
+  if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
 
   # Ensure environment exists
   if (!exists(".litellm_env", envir = .GlobalEnv)) {
@@ -175,6 +249,7 @@ litellm_chat <- function(prompt,
   if (length(env$messages) > 0) messages <- append(messages, env$messages)
   messages <- append(messages, list(list(role = "user", content = prompt)))
 
+  # Send to LiteLLM /chat/completions
   req <- request(paste0(base_url, "/chat/completions")) |>
     req_headers(
       "x-litellm-api-key" = api_key,
