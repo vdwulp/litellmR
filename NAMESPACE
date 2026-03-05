@@ -2,4 +2,5 @@
 
 export(litellm_chat)
 export(litellm_models)
+export(litellm_prompt)
 export(litellm_setup)
