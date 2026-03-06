@@ -287,9 +287,8 @@ litellm_chat <- function(prompt,
 #' A connection must first be configured using `litellm_setup()`.
 #'
 #' @return
-#' A list containing information about the models available on the
-#' LiteLLM server. The exact structure depends on the server
-#' configuration but typically includes model names and metadata.
+#' A data frame containing information about the models available on
+#' the LiteLLM server.
 #'
 #' @examples
 #' \dontrun{
@@ -308,15 +307,24 @@ litellm_chat <- function(prompt,
 #' @export
 litellm_models <- function() {
 
+  # Ensure setup
   api_key <- getOption("litellm_api_key")
   base_url <- getOption("litellm_base_url")
+  if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
 
+  # Send to LiteLLM /models
   req <- request(paste0(base_url, "/models")) |>
     req_headers(
-      "x-litellm-api-key" = api_key
+      "x-litellm-api-key" = api_key,
+      "Content-Type" = "application/json"
     )
   resp <- req_perform(req)
+  json <- resp_body_json(resp)
 
-  resp_body_json(resp)
+  # Return as data frame
+  data.frame(
+    model = vapply(json$data, `[[`, "", "id"),
+    provider = vapply(json$data, `[[`, "", "owned_by"),
+    stringsAsFactors = FALSE
+  )
 }
-

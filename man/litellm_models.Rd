@@ -7,9 +7,8 @@
 litellm_models()
 }
 \value{
-A list containing information about the models available on the
-LiteLLM server. The exact structure depends on the server
-configuration but typically includes model names and metadata.
+A data frame containing information about the models available on
+the LiteLLM server.
 }
 \description{
 This function requests a list of available language models from the
