@@ -59,10 +59,12 @@ litellm_setup <- function(api_key, base_url) {
   )
 }
 
-#' Send a single prompt to a LiteLLM model (without chat context)
+#' Send one or more prompts to a LiteLLM model (without chat context)
 #'
-#' Sends a **stateless** prompt to a LiteLLM model and returns the response.
-#' No conversation context is preserved; each call is independent.
+#' Sends a **stateless** prompt or series of prompts to a LiteLLM model
+#' and returns the responses. Each element in a vector is treated as a
+#' separate request. This allows seamless integration with tidyverse
+#' pipelines. No conversation context is preserved; each call is independent.
 #'
 #' LiteLLM provides an OpenAI-compatible API that allows different
 #' language models to be accessed through a single interface.
@@ -70,9 +72,11 @@ litellm_setup <- function(api_key, base_url) {
 #' Before using this function, a connection must be configured with
 #' `litellm_setup()`.
 #'
-#' @param prompt Character string. The question or instruction to send
-#'   to the language model. For example:
+#' @param prompt Character string or vector of strings. One or more questions
+#'   or instructions to send to the language model. For example:
 #'   `"Explain what regression analysis is."`
+#'   If a vector is provided, each element is treated as a separate request.
+#'   Vectors can be used directly in tidyverse pipelines.
 #'
 #' @param model Character string. The name of the model to use.
 #'   The available models depend on the LiteLLM server configuration.
@@ -105,35 +109,57 @@ litellm_setup <- function(api_key, base_url) {
 #'
 #' # Single prompt
 #' litellm_prompt("Explain regression analysis in simple terms.")
+#'
+#' # Multiple prompts provided as a vector
+#' prompts <- c(
+#'   "Summarize key points about teaching feedback.",
+#'   "Give tips for improving student engagement."
+#' )
+#'
+#' litellm_prompt(prompts)
+#'
+#' # Integrated in a tidyverse pipeline
+#' df <- tibble(
+#'   Number = 1:2,
+#'   Request = c( "Summarize key points about teaching feedback.",
+#'                "Give tips for improving student engagement." )
+#' )
+#'
+#' df %>%
+#'   mutate(Response = litellm_prompt(Request))
 #' }
 #'
 #' @export
-litellm_prompt <- function(prompt, model="gpt-4o-mini",
+litellm_prompt <- function(prompt,
+                           model="gpt-4o-mini",
                            temperature=0.7,
                            max_tokens=500) {
 
   # Ensure setup
   api_key <- getOption("litellm_api_key")
   base_url <- getOption("litellm_base_url")
-  if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
+  if (is.null(api_key) || is.null(base_url))
+    stop("Run litellm_setup() first.")
 
   # Send to LiteLLM /completions
-  req <- request(paste0(base_url, "/completions")) |>
-    req_headers(
-      "x-litellm-api-key" = api_key,
-      "Content-Type" = "application/json"
-    ) |>
-    req_body_json(list(
-      model = model,
-      prompt = prompt,
-      temperature = temperature,
-      max_tokens = max_tokens
-    ))
+  sapply(prompt, function(p) {
+    req <- request(paste0(base_url, "/completions")) |>
+      req_headers(
+        "x-litellm-api-key" = api_key,
+        "Content-Type" = "application/json"
+      ) |>
+      req_body_json(list(
+        model = model,
+        prompt = p,
+        temperature = temperature,
+        max_tokens = max_tokens
+      ))
 
-  resp <- req_perform(req)
-  json <- resp_body_json(resp)
+    resp <- req_perform(req)
+    json <- resp_body_json(resp)
 
-  json$choices[[1]]$text
+    json$choices[[1]]$text
+  }, USE.NAMES = FALSE )
 }
 
 #' Send a chat message to a LiteLLM model (multi-turn)
@@ -220,7 +246,8 @@ litellm_chat <- function(prompt,
   # Ensure setup
   api_key <- getOption("litellm_api_key")
   base_url <- getOption("litellm_base_url")
-  if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
+  if (is.null(api_key) || is.null(base_url))
+    stop("Run litellm_setup() first.")
 
   # Ensure environment exists
   if (!exists(".litellm_env", envir = .GlobalEnv)) {

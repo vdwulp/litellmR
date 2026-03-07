@@ -8,9 +8,7 @@ Run these R commands:
 
   ```r
   # Install remotes package if necessary
-  if (!requireNamespace("remotes", quietly = TRUE)) {
-    install.packages("remotes")
-  }
+  install.packages("remotes")
   
   # Install litellmR package from GitHub
   remotes::install_github("vdwulp/litellmR")
@@ -23,7 +21,7 @@ Code example:
   ```r
   library(litellmR)
 
-  # 1. Set up the connection
+  # Set up the connection
   litellm_setup(
     api_key = "YOUR_API_KEY",
     base_url = "https://my-litellm-server/v1"
@@ -44,17 +42,57 @@ For extended documentation, use:
 
 ## 🏃 Advanced usage
 
+### Multiple prompts at once
+
+Prompts can be provided as a vector:
+
+  ```R
+  prompts <- c(
+    "Summarize key points about teaching feedback.",
+    "Give tips for improving student engagement."
+  )
+  litellm_prompt(prompts)
+  ```
+
+Or integrated in a tidyverse pipeline:
+
+  ```R
+  df <- tibble(
+    Number = 1:2,
+    Request = c( "Summarize key points about teaching feedback.",
+                 "Give tips for improving student engagement." )
+  )
+    
+  df %>%
+    mutate(Response = litellm_prompt(Request))
+  ```
+
+- Each element in the vector or data frame column is treated as a separate prompt.
+
+### Multi-turn chat
+
 For a multi-turn chat where context is preserved across messages:
 
   ```R
-  # 4. Chat with LiteLLM
   litellm_chat("Explain regression analysis in simple terms.")
   litellm_chat("That is way too complex for me.")
   ```
 
-Note:
-- Use litellm_prompt() for one-off queries or batch processing where context is not needed.
-- Use litellm_chat() when you need follow-up messages to be aware of previous conversation.
+- litellm_prompt() is stateless, best for single or batched prompts where context is not needed.
+- litellm_chat() preserves conversation context, suited for multi-turn interactions.
+
+### Model and temperature
+
+You can specify the AI model and/or temperature:
+
+  ```R
+  litellm_prompt("Explain regression analysis in simple terms.",
+                 model = "gpt-4.1",
+                 temperature = 1.0 )
+  ```
+
+- `model` selects which LiteLLM AI model to use (default `gpt-4o-mini`, `gpt-4.1` in example).
+- `temperature` controls creativity/randomness (0 = deterministic, 1 = creative, default 0.7).
 
 ## 🗒️ License
 To be added later...

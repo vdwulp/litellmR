@@ -8,8 +8,8 @@
 #' @section Main functions:
 #' \describe{
 #'   \item{\code{\link{litellm_setup}}}{Configure the API key and server URL. Must be run before other functions.}
-#'   \item{\code{\link{litellm_prompt}}}{Send a single prompt to a LiteLLM model  and receive a response (without chat context).}
-#'   \item{\code{\link{litellm_chat}}}{Send a chat message to a LiteLLM model and receive a response (multi-turn chat).}
+#'   \item{\code{\link{litellm_prompt}}}{Send one or more prompts to a LiteLLM model (without chat context).}
+#'   \item{\code{\link{litellm_chat}}}{Send a chat message to a LiteLLM model (multi-turn).}
 #'   \item{\code{\link{litellm_models}}}{List the models available on the LiteLLM server.}
 #' }
 #'

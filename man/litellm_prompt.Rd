@@ -2,7 +2,7 @@
 % Please edit documentation in R/litellm.R
 \name{litellm_prompt}
 \alias{litellm_prompt}
-\title{Send a single prompt to a LiteLLM model (without chat context)}
+\title{Send one or more prompts to a LiteLLM model (without chat context)}
 \usage{
 litellm_prompt(
   prompt,
@@ -12,9 +12,11 @@ litellm_prompt(
 )
 }
 \arguments{
-\item{prompt}{Character string. The question or instruction to send
-to the language model. For example:
-\code{"Explain what regression analysis is."}}
+\item{prompt}{Character string or vector of strings. One or more questions
+or instructions to send to the language model. For example:
+\code{"Explain what regression analysis is."}
+If a vector is provided, each element is treated as a separate request.
+Vectors can be used directly in tidyverse pipelines.}
 
 \item{model}{Character string. The name of the model to use.
 The available models depend on the LiteLLM server configuration.
@@ -36,8 +38,10 @@ answers but may increase processing time or API usage.}
 Character string containing the model's response.
 }
 \description{
-Sends a \strong{stateless} prompt to a LiteLLM model and returns the response.
-No conversation context is preserved; each call is independent.
+Sends a \strong{stateless} prompt or series of prompts to a LiteLLM model
+and returns the responses. Each element in a vector is treated as a
+separate request. This allows seamless integration with tidyverse
+pipelines. No conversation context is preserved; each call is independent.
 }
 \details{
 LiteLLM provides an OpenAI-compatible API that allows different
@@ -57,6 +61,24 @@ litellm_setup(
 
 # Single prompt
 litellm_prompt("Explain regression analysis in simple terms.")
+
+# Multiple prompts provided as a vector
+prompts <- c(
+  "Summarize key points about teaching feedback.",
+  "Give tips for improving student engagement."
+)
+
+litellm_prompt(prompts)
+
+# Integrated in a tidyverse pipeline
+df <- tibble(
+  Number = 1:2,
+  Request = c( "Summarize key points about teaching feedback.",
+               "Give tips for improving student engagement." )
+)
+
+df \%>\%
+  mutate(Response = litellm_prompt(Request))
 }
 
 }
