@@ -63,7 +63,7 @@ Or integrated in a tidyverse pipeline:
                  "Give tips for improving student engagement." )
   )
     
-  df %>%
+  df |>
     mutate(Response = litellm_prompt(Request))
   ```
 
@@ -95,6 +95,6 @@ You can specify the AI model and/or temperature:
 - `temperature` controls creativity/randomness (0 = deterministic, 1 = creative, default 0.7).
 
 ## 🗒️ License
-To be added later...
+MIT License, full text available in [LICENSE](https://github.com/vdwulp/litellmR/blob/master/LICENSE.md) file.
 
 Copyright (c) 2026 SA van der Wulp

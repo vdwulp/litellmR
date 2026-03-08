@@ -77,7 +77,7 @@ df <- tibble(
                "Give tips for improving student engagement." )
 )
 
-df \%>\%
+df |>
   mutate(Response = litellm_prompt(Request))
 }
 

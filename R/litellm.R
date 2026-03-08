@@ -1,5 +1,4 @@
 library(httr2)
-library(jsonlite)
 
 #' Configure connection settings for a LiteLLM server
 #'
@@ -125,7 +124,7 @@ litellm_setup <- function(api_key, base_url) {
 #'                "Give tips for improving student engagement." )
 #' )
 #'
-#' df %>%
+#' df |>
 #'   mutate(Response = litellm_prompt(Request))
 #' }
 #'
