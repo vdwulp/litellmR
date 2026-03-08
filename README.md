@@ -1,5 +1,8 @@
 # 📚 Package litellmR
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/vdwulp/litellmR/blob/master/LICENSE.md)
+[![GitHub release](https://img.shields.io/github/v/release/vdwulp/litellmR.svg)](https://github.com/vdwulp/litellmR/releases/latest)
+
 R package providing a simple interface to interact with LiteLLM AI language models.
 
 ## ✈️ Installation
