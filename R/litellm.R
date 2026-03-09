@@ -1,5 +1,3 @@
-library(httr2)
-
 #' Configure connection settings for a LiteLLM server
 #'
 #' This function sets up the connection to a LiteLLM server by storing
@@ -142,20 +140,20 @@ litellm_prompt <- function(prompt,
 
   # Send to LiteLLM /completions
   sapply(prompt, function(p) {
-    req <- request(paste0(base_url, "/completions")) |>
-      req_headers(
+    req <- httr2::request(paste0(base_url, "/completions")) |>
+      httr2::req_headers(
         "x-litellm-api-key" = api_key,
         "Content-Type" = "application/json"
       ) |>
-      req_body_json(list(
+      httr2::req_body_json(list(
         model = model,
         prompt = p,
         temperature = temperature,
         max_tokens = max_tokens
       ))
 
-    resp <- req_perform(req)
-    json <- resp_body_json(resp)
+    resp <- httr2::req_perform(req)
+    json <- httr2::resp_body_json(resp)
 
     json$choices[[1]]$text
   }, USE.NAMES = FALSE )
@@ -276,20 +274,20 @@ litellm_chat <- function(prompt,
   messages <- append(messages, list(list(role = "user", content = prompt)))
 
   # Send to LiteLLM /chat/completions
-  req <- request(paste0(base_url, "/chat/completions")) |>
-    req_headers(
+  req <- httr2::request(paste0(base_url, "/chat/completions")) |>
+    httr2::req_headers(
       "x-litellm-api-key" = api_key,
       "Content-Type" = "application/json"
     ) |>
-    req_body_json(list(
+    httr2::req_body_json(list(
       model = model,
       messages = messages,
       temperature = temperature,
       max_tokens = max_tokens
     ))
 
-  resp <- req_perform(req)
-  json <- resp_body_json(resp)
+  resp <- httr2::req_perform(req)
+  json <- httr2::resp_body_json(resp)
 
   answer <- json$choices[[1]]$message$content
 
@@ -339,13 +337,13 @@ litellm_models <- function() {
   if (is.null(api_key) || is.null(base_url)) stop("Run litellm_setup() first.")
 
   # Send to LiteLLM /models
-  req <- request(paste0(base_url, "/models")) |>
-    req_headers(
+  req <- httr2::request(paste0(base_url, "/models")) |>
+    httr2::req_headers(
       "x-litellm-api-key" = api_key,
       "Content-Type" = "application/json"
     )
-  resp <- req_perform(req)
-  json <- resp_body_json(resp)
+  resp <- httr2::req_perform(req)
+  json <- httr2::resp_body_json(resp)
 
   # Return as data frame
   data.frame(
