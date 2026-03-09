@@ -1,3 +1,8 @@
+# litellmR 0.1.1
+
+Fixes httr2 references.
+
+
 # litellmR 0.1.0
 
 **Initial release!**
